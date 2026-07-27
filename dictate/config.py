@@ -23,7 +23,7 @@ FALLBACK_LANGUAGE = "en"                 # used when detected language isn't in 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 LLM_MODEL      = "anthropic/claude-haiku-4-5"
 COMMAND_PREFIXES = ("computer", "shooter")   # say "computer, ..." to trigger command mode; "shooter" is a common Whisper mis-hearing of "computer"
-DICTATION_TRIGGER = "marigold"   # say "marigold, ..." to trigger plain-text typing; if empty, the LLM judges intent instead
+DICTATION_TRIGGERS = ("platypus", "platypurs", "platyposs", "platyposts")   # say "platypus, ..." to trigger plain-text typing; aliases cover observed word-ending mis-hearings; empty tuple lets the LLM judge intent instead
 
 # X11
 DISPLAY        = os.environ.get("DISPLAY", ":0")

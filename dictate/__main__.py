@@ -32,10 +32,10 @@ def on_utterance(processor, model, audio_bytes: bytes):
         return
 
     # Plain dictation: gated by a trigger word if configured, else the LLM judges intent.
-    if config.DICTATION_TRIGGER:
-        trigger = config.DICTATION_TRIGGER.lower()
-        if low.startswith(trigger):
-            type_text(text[len(config.DICTATION_TRIGGER):].strip(" .,"))
+    if config.DICTATION_TRIGGERS:
+        matched_trigger = next((t for t in config.DICTATION_TRIGGERS if low.startswith(t)), None)
+        if matched_trigger:
+            type_text(text[len(matched_trigger):].strip(" .,"))
         else:
             print(f"  ✗ no dictation trigger, ignored: {text!r}")
     elif is_intentional_dictation(text):
