@@ -23,6 +23,8 @@ def load_model():
 
 
 def _detected_language(processor, generated_ids) -> str:
+    if generated_ids.shape[1] < 2:
+        return config.FALLBACK_LANGUAGE
     token = processor.tokenizer.convert_ids_to_tokens([generated_ids[0][1].item()])[0]
     return token.strip("<|>")
 

@@ -17,3 +17,7 @@ wheels/
 
 # OpenVINO GPU plugin debug dump
 kernel.errors.txt
+
+# Runtime state
+.dictate.pid
+dictate.log

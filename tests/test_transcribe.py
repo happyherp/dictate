@@ -2,8 +2,10 @@ import wave
 from pathlib import Path
 
 import pytest
+import torch
 
-from dictate.transcribe import is_hallucination, load_model, transcribe
+from dictate import config
+from dictate.transcribe import _detected_language, is_hallucination, load_model, transcribe
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -40,3 +42,10 @@ def test_is_hallucination_rejects_noise_phrases():
 
 def test_is_hallucination_accepts_real_text():
     assert not is_hallucination("The quick brown fox jumps over the lazy dog.")
+
+
+def test_detected_language_handles_single_token_sequence():
+    # A very short/near-silent utterance can produce a 1-token sequence with
+    # no language token yet — must fall back instead of IndexError-ing.
+    short_sequence = torch.tensor([[50258]])
+    assert _detected_language(None, short_sequence) == config.FALLBACK_LANGUAGE
