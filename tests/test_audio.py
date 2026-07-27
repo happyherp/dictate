@@ -41,3 +41,22 @@ def test_callback_does_not_block_on_slow_handler(monkeypatch):
             break
         time.sleep(0.02)
     assert len(calls) == 1
+
+
+def test_recording_includes_pre_roll_audio(monkeypatch):
+    listener = AudioListener(on_utterance=lambda audio: None)
+    monkeypatch.setattr(listener.vad, "is_speech", lambda *a, **kw: True)
+
+    indata = np.zeros((FRAME_SAMPLES, 1), dtype="float32")
+
+    # Feed exactly SPEECH_FRAMES frames — the last call is the one where
+    # VAD confirms speech and recording flips on.
+    for _ in range(config.SPEECH_FRAMES):
+        listener._callback(indata, FRAME_SAMPLES, None, None)
+
+    assert listener.recording is True
+    # The buffer must already contain all SPEECH_FRAMES worth of audio (the
+    # pre-roll), not just the single frame that crossed the threshold —
+    # otherwise the leading syllable of every utterance gets clipped.
+    expected_bytes = FRAME_SAMPLES * 2 * config.SPEECH_FRAMES  # int16 = 2 bytes/sample
+    assert len(listener.audio_buffer) == expected_bytes

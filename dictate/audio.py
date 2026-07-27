@@ -14,7 +14,8 @@ class AudioListener:
     def __init__(self, on_utterance):
         self.on_utterance = on_utterance
         self.vad = webrtcvad.Vad(config.VAD_MODE)
-        self.ring = collections.deque(maxlen=config.SPEECH_FRAMES)
+        self.speech_ring = collections.deque(maxlen=config.SPEECH_FRAMES)
+        self.audio_ring = collections.deque(maxlen=config.SPEECH_FRAMES)
         self.recording = False
         self.silence_count = 0
         self.audio_buffer = b""
@@ -24,13 +25,16 @@ class AudioListener:
     def _callback(self, indata, frames, time, status):
         raw = (indata[:, 0] * 32767).astype(np.int16).tobytes()
         is_speech = self.vad.is_speech(raw, config.SAMPLE_RATE)
-        self.ring.append(is_speech)
+        self.speech_ring.append(is_speech)
+        self.audio_ring.append(raw)
 
         if not self.recording:
-            if sum(self.ring) >= config.SPEECH_FRAMES:
+            if sum(self.speech_ring) >= config.SPEECH_FRAMES:
                 self.recording = True
                 self.silence_count = 0
-                self.audio_buffer = b""
+                # Prepend the buffered pre-roll audio (the frames that led up to
+                # VAD confirming speech) so the first syllable isn't clipped.
+                self.audio_buffer = b"".join(self.audio_ring)
                 print("▶", end="", flush=True)
         else:
             self.audio_buffer += raw
