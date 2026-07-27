@@ -14,6 +14,8 @@ wheels/
 
 # Model cache
 .cache/
+.ov_model/
+.ov_cache/
 
 # OpenVINO GPU plugin debug dump
 kernel.errors.txt

@@ -18,6 +18,8 @@ WHISPER_MODEL  = "openai/whisper-base"
 OV_DEVICE      = "GPU"   # "CPU" as fallback
 ALLOWED_LANGUAGES = ("en", "de", "es")   # restrict decoding to these; rejects hallucinated languages (e.g. Korean on silence)
 FALLBACK_LANGUAGE = "en"                 # used when detected language isn't in ALLOWED_LANGUAGES
+OV_MODEL_DIR = ".ov_model"          # cached OpenVINO IR export; skips re-converting from PyTorch on every startup
+OV_KERNEL_CACHE_DIR = ".ov_cache"   # OpenVINO compiled-kernel cache; skips GPU kernel recompilation on every startup
 
 # LLM (via OpenRouter)
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
