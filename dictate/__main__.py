@@ -14,10 +14,11 @@ def on_utterance(processor, model, audio_bytes: bytes):
 
     print(f"  heard: {text!r}")
 
-    # Route to LLM if prefixed with command word, else type directly
+    # Route to LLM if prefixed with a command word, else type directly
     low = text.lower().strip(" .,")
-    if low.startswith(config.COMMAND_PREFIX):
-        command_text = text[len(config.COMMAND_PREFIX):].strip(" .,")
+    matched_prefix = next((p for p in config.COMMAND_PREFIXES if low.startswith(p)), None)
+    if matched_prefix:
+        command_text = text[len(matched_prefix):].strip(" .,")
         print(f"  → LLM routing: {command_text!r}")
         action, value = interpret(command_text)
         print(f"  → {action}: {value!r}")

@@ -14,3 +14,6 @@ wheels/
 
 # Model cache
 .cache/
+
+# OpenVINO GPU plugin debug dump
+kernel.errors.txt

@@ -22,10 +22,17 @@ def load_model():
     return processor, model
 
 
+def _detected_language(processor, generated_ids) -> str:
+    token = processor.tokenizer.convert_ids_to_tokens([generated_ids[0][1].item()])[0]
+    return token.strip("<|>")
+
+
 def transcribe(processor, model, audio_bytes: bytes) -> str:
     audio = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
     inputs = processor(audio, sampling_rate=config.SAMPLE_RATE, return_tensors="pt")
     generated = model.generate(inputs["input_features"])
+    if _detected_language(processor, generated) not in config.ALLOWED_LANGUAGES:
+        generated = model.generate(inputs["input_features"], language=config.FALLBACK_LANGUAGE)
     return processor.batch_decode(generated, skip_special_tokens=True)[0].strip()
 
 

@@ -28,7 +28,7 @@ def interpret(text: str) -> tuple[str, str]:
     """Returns (action_type, value) where action_type is 'type'/'cmd'/'key'."""
     client = anthropic.Anthropic(
         api_key=config.OPENROUTER_API_KEY,
-        base_url="https://openrouter.ai/api/v1",
+        base_url="https://openrouter.ai/api",
     )
     message = client.messages.create(
         model=config.LLM_MODEL,
