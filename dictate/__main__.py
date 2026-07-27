@@ -2,7 +2,7 @@ from . import config
 from .transcribe import load_model, transcribe, is_hallucination
 from .audio import AudioListener
 from .output import type_text, press_key, run_command
-from .llm import interpret
+from .llm import interpret, is_intentional_dictation
 
 
 def on_utterance(processor, model, audio_bytes: bytes):
@@ -14,8 +14,9 @@ def on_utterance(processor, model, audio_bytes: bytes):
 
     print(f"  heard: {text!r}")
 
-    # Route to LLM if prefixed with a command word, else type directly
     low = text.lower().strip(" .,")
+
+    # Command mode: "computer, ..." / "shooter, ..." routes to the LLM interpreter.
     matched_prefix = next((p for p in config.COMMAND_PREFIXES if low.startswith(p)), None)
     if matched_prefix:
         command_text = text[len(matched_prefix):].strip(" .,")
@@ -28,8 +29,19 @@ def on_utterance(processor, model, audio_bytes: bytes):
             press_key(value)
         elif action == "cmd":
             run_command(value)
-    else:
+        return
+
+    # Plain dictation: gated by a trigger word if configured, else the LLM judges intent.
+    if config.DICTATION_TRIGGER:
+        trigger = config.DICTATION_TRIGGER.lower()
+        if low.startswith(trigger):
+            type_text(text[len(config.DICTATION_TRIGGER):].strip(" .,"))
+        else:
+            print(f"  ✗ no dictation trigger, ignored: {text!r}")
+    elif is_intentional_dictation(text):
         type_text(text)
+    else:
+        print(f"  ✗ LLM filtered as unintentional: {text!r}")
 
 
 def main():

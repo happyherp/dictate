@@ -1,4 +1,7 @@
 import collections
+import queue
+import threading
+
 import numpy as np
 import sounddevice as sd
 import webrtcvad
@@ -15,6 +18,8 @@ class AudioListener:
         self.recording = False
         self.silence_count = 0
         self.audio_buffer = b""
+        self._utterances = queue.Queue()
+        self._worker = threading.Thread(target=self._process_utterances, daemon=True)
 
     def _callback(self, indata, frames, time, status):
         raw = (indata[:, 0] * 32767).astype(np.int16).tobytes()
@@ -36,13 +41,19 @@ class AudioListener:
                     frames_recorded = len(self.audio_buffer) // (FRAME_SAMPLES * 2)
                     if frames_recorded >= config.MIN_SPEECH_FRAMES:
                         print(" ◼", flush=True)
-                        self.on_utterance(self.audio_buffer)
+                        self._utterances.put(self.audio_buffer)
                     else:
                         print(" (short, skipped)", flush=True)
             else:
                 self.silence_count = 0
 
+    def _process_utterances(self):
+        while True:
+            audio = self._utterances.get()
+            self.on_utterance(audio)
+
     def run(self):
+        self._worker.start()
         with sd.InputStream(
             device=config.MIC_DEVICE,
             channels=1,

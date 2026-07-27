@@ -45,3 +45,30 @@ def interpret(text: str) -> tuple[str, str]:
         return "type", response[6:]
     # Fallback: treat as plain text
     return "type", text
+
+
+DICTATION_FILTER_PROMPT = """You are filtering speech-to-text output from an always-on dictation \
+microphone, which sometimes picks up background noise, TV/media audio, other people talking, or \
+speech-recognition hallucinations.
+
+Given a transcribed utterance, respond with exactly one word:
+  YES - this reads like something the user intentionally said to be typed as dictation
+  NO - this looks like background noise, a stray word, someone else talking, media audio, or a \
+nonsensical transcription artifact
+
+Respond with only YES or NO."""
+
+
+def is_intentional_dictation(text: str) -> bool:
+    """Ask the LLM whether a transcribed utterance was intentional dictation."""
+    client = anthropic.Anthropic(
+        api_key=config.OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api",
+    )
+    message = client.messages.create(
+        model=config.LLM_MODEL,
+        max_tokens=5,
+        system=DICTATION_FILTER_PROMPT,
+        messages=[{"role": "user", "content": text}],
+    )
+    return message.content[0].text.strip().upper().startswith("YES")
