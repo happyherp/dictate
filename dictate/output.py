@@ -6,7 +6,9 @@ _ENV = {**os.environ, "DISPLAY": config.DISPLAY}
 
 
 def type_text(text: str):
-    subprocess.run(["xdotool", "type", "--clearmodifiers", "--", text], env=_ENV)
+    subprocess.run(
+        ["xdotool", "type", "--clearmodifiers", "--delay", "1", "--", text], env=_ENV
+    )
 
 
 def press_key(key: str):
